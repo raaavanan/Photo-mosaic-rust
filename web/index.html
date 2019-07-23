@@ -1,10 +1,70 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Hello wasm-pack!</title>
-  </head>
-  <body>
-    <script src="./bootstrap.js"></script>
-  </body>
+
+<head>
+  <meta charset="utf-8">
+  <title>Photo Mosaic App</title>
+  <style>
+    * {
+      margin: 0px;
+      padding: 0px;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    header {
+      width: 100%;
+      height: 100px;
+      border: 5px solid #999999;
+      text-align: center;
+      line-height: 100px;
+      margin-bottom: 20px;
+    }
+    aside {
+      width: 20%;
+      height: auto;
+      text-align: center;
+      border: 5px solid #999999;
+      padding: 20px;
+      float:left;
+    }
+    aside label {
+      margin: 10px;
+    }
+    aside input {
+      margin-left: 20px;
+    }
+    section {
+      width: 75%;
+      height: auto;
+      border: 5px solid #999999;
+      float:left;
+      margin-left: 20px;
+    }
+    section canvas {
+      max-width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>The Photo Mosaic App</h1>
+  </header>
+  <aside>
+    <div id="file-input">
+      <label for="upload-image">Choose an Image</label>
+      <input id="upload-image" type="file" name="image">
+    </div>
+  </aside>
+  <section class="image-frame">
+    <canvas id="main-frame" width="350px" height="400px" />
+  </section>
+  <script src="./bootstrap.js"></script>
+</body>
+
 </html>

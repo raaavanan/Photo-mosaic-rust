@@ -1,3 +1,7 @@
+import { image_data, mosaify } from 'photo-mosaic'
+
+
+
 const canvas = document.getElementById('main-frame');
 const ctx = canvas.getContext('2d');
 
@@ -32,8 +36,27 @@ img.onload = () => {
     canvas.width = img.width;
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
-    generateTiles();
-}
+    
+    const tiles = generateTiles();
+
+    // const colors = tiles.map((tile, i) => {
+    //     console.log('=======================color============================');
+    //     console.log(tile.pixels);
+    //     console.log('=======================color============================');
+    //     const color = image_data(tile.pixels);
+    //     console.log('=======================color============================');
+    //     console.log(color, i);
+    //     console.log('=======================color============================');
+    //     return {color, x: tile.x, y: tile.y};
+    // });
+
+    const colors = image_data(tiles[105].pixels);
+    
+    //const colors = mosaify(tiles);
+    console.log('=======================colors============================');
+    console.log(colors);
+    console.log('=======================colors============================');
+}   
 
 /**
  * generate tiles of image data with x, y co-ordinates
@@ -60,12 +83,16 @@ function generateTiles() {
                 canvas.width,
                 canvas.height
             );
-
+            
+            let dataUri = canvas.toDataURL();
+            dataUri = dataUri.replace('data:image/png;base64,', '');
+    
             imageTiles.push({
-                "img": canvas.toDataURL(),
+                "pixels": dataUri,// raw pixels
                 "x": x * TILE_WIDTH,
                 "y": y * TILE_HEIGHT
             });
         } //end of colums for loop
     } //end of row for loop
+    return imageTiles;
 }

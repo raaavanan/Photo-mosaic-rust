@@ -1,15 +1,16 @@
 import { image_data, mosaify } from 'photo-mosaic'
 
-
-
+/** Initiating a canvas element at global scope */
 const canvas = document.getElementById('main-frame');
 const ctx = canvas.getContext('2d');
 
+// image to recieve the image uploaded by user
 const img = new Image();
 const fileInput = document.getElementById("file-input");
 const TILE_WIDTH = 16;
 const TILE_HEIGHT = 16;
 
+// listen to file upload
 fileInput.onchange = imageUpload;
 
 //handling image selected by the user
@@ -20,25 +21,26 @@ function imageUpload() {
     if (file) {
         reader.readAsDataURL(file);
     }
+    // display the image once the image is ready
     reader.onload = function (evt) {
         if (evt.target.readyState == FileReader.DONE) {
             img.src = evt.target.result;
-            console.log('=======================image file loaded============================');
             document.body.appendChild(img);
             img.style.display = 'none';
         }
     }
 }
 
+// On image ready load it in canvas
 img.onload = () => {
-    console.log('=======================image rendered============================');
     canvas.width = img.width;
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
     let dataUri = canvas.toDataURL();
     dataUri = dataUri.replace('data:image/png;base64,', '');
 
-    //const tiles = generateTiles();
+
+   // const tiles = generateTiles();
 
     // const colors = tiles.map((tile, i) => {
     //     console.log('=======================color============================');

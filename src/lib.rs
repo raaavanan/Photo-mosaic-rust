@@ -64,7 +64,6 @@ pub fn image_data(image_tile: String) -> JsValue {
     let pixels = &img.raw_pixels();
     let colors = color_thief::get_palette(&pixels, color_type, 10, 10).unwrap();
     
-    //vec![colors[0].r, colors[0].g, colors[0].b]
     let palette = Palette {
         color1: vec![colors[0].r, colors[0].g, colors[0].b],
         color2: vec![colors[1].r, colors[1].g, colors[1].b],

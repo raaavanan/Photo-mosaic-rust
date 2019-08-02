@@ -4,11 +4,14 @@ extern crate serde_json;
 extern crate image;
 extern crate color_thief;
 extern crate base64;
+extern crate tokio;
+
+use tokio::prelude::*;
 
 use wasm_bindgen::prelude::*;
 
 use color_thief::{ColorFormat};
-use image::{load_from_memory_with_format};
+use image::{load_from_memory_with_format, DynamicImage};
 
 #[macro_use]
 extern crate serde_derive;
@@ -52,14 +55,19 @@ fn find_color(t: image::ColorType) -> ColorFormat {
     }
 }
 
+fn load_image(image_string: String) -> DynamicImage {
+    // decode the base64 image
+    let decoded_img_bytes = base64::decode(&image_string).unwrap();
+    
+    load_from_memory_with_format(&decoded_img_bytes, image::ImageFormat::PNG).unwrap()
+}
+
 #[wasm_bindgen]
-pub fn image_data(image_tile: String) -> JsValue {
+pub fn get_color_palette(image_tile: String) -> JsValue {
     // utility to log errors in JS
     utils::set_panic_hook();
 
-    // decode the base64 image
-    let decoded_img_bytes = base64::decode(&image_tile).unwrap();
-    let img = load_from_memory_with_format(&decoded_img_bytes, image::ImageFormat::PNG).unwrap();
+    let img = load_image(String::from(image_tile));
     let color_type = find_color(img.color());
     let pixels = &img.raw_pixels();
     let colors = color_thief::get_palette(&pixels, color_type, 10, 10).unwrap();
@@ -75,6 +83,15 @@ pub fn image_data(image_tile: String) -> JsValue {
     JsValue::from_serde(&palette).unwrap()
 }
 
+fn get_dominant_color(image_tile: String) -> Vec<u8> {
+    let img = load_image(String::from(image_tile));
+    let color_type = find_color(img.color());
+    let pixels = &img.raw_pixels();
+    let colors = color_thief::get_palette(&pixels, color_type, 10, 10).unwrap();
+
+    vec![colors[0].r, colors[0].g, colors[0].b]
+}
+
 #[wasm_bindgen]
 pub fn mosaify(tiles: &JsValue) -> JsValue {
     // utility to log errors in JS
@@ -85,16 +102,13 @@ pub fn mosaify(tiles: &JsValue) -> JsValue {
 
     for tile in image_tiles.iter() {
         let pixels = &tile.pixels;
-        //let result_tile = image_data(pixels.to_string());
-        // result.push(ColorCell{
-        //     color: result_tile.color1,
-        //     x: tile.x,
-        //     y: tile.y
-        // });
+        let result_color = get_dominant_color(pixels.to_string());
+        result.push(ColorCell{
+            color: result_color,
+            x: tile.x,
+            y: tile.y
+        });
     }
-    
-
-
     JsValue::from_serde(&result).unwrap()
 }
 

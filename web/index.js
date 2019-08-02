@@ -1,4 +1,4 @@
-import { image_data, mosaify } from 'photo-mosaic'
+import { get_color_palette, mosaify } from 'photo-mosaic'
 
 /** Initiating a canvas element at global scope */
 const canvas = document.getElementById('main-frame');
@@ -39,30 +39,16 @@ img.onload = () => {
     let dataUri = canvas.toDataURL();
     dataUri = dataUri.replace('data:image/png;base64,', '');
 
+    console.time("generating tiles");
+    const tiles = generateTiles();
+    console.timeEnd("generating tiles");
 
-   // const tiles = generateTiles();
-
-    // const colors = tiles.map((tile, i) => {
-    //     console.log('=======================color============================');
-    //     console.log(tile.pixels);
-    //     console.log('=======================color============================');
-    //     setTimeout(() => {
-    //         const color = image_data(tile.pixels);
-    //         console.log('=======================color============================');
-    //         console.log(color, i);
-    //         console.log('=======================color============================');
-    //         return {color, x: tile.x, y: tile.y};
-    //     }, 300);
-        
-    // });
-
-    const colors = image_data(dataUri);
-    
-    //const colors = mosaify(tiles);
+    const palette = get_color_palette(dataUri);
+    const colors = mosaify(tiles);
     console.log('=======================colors============================');
     console.log(colors);
     console.log('=======================colors============================');
-    showColorPalette(colors);
+    showColorPalette(palette);
 }
 
 /**

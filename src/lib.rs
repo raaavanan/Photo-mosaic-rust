@@ -4,9 +4,6 @@ extern crate serde_json;
 extern crate image;
 extern crate color_thief;
 extern crate base64;
-extern crate tokio;
-
-use tokio::prelude::*;
 
 use wasm_bindgen::prelude::*;
 
@@ -26,19 +23,19 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[derive(Serialize, Deserialize)]
 pub struct InputCell {
     pub pixels: String,
-    pub x: i32,
-    pub y: i32
+    pub x: i128,
+    pub y: i128
 }
 
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct ColorCell {
     pub color: Vec<u8>,
-    pub x: i32,
-    pub y: i32
+    pub x: i128,
+    pub y: i128
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Palette {
     pub color1: Vec<u8>,
     pub color2: Vec<u8>,
@@ -100,15 +97,15 @@ pub fn mosaify(tiles: &JsValue) -> JsValue {
     let image_tiles: Vec<InputCell> = tiles.into_serde().unwrap();
     let mut result: Vec<ColorCell> = Vec::new();
 
-    for tile in image_tiles.iter() {
-        let pixels = &tile.pixels;
-        let result_color = get_dominant_color(pixels.to_string());
-        result.push(ColorCell{
-            color: result_color,
-            x: tile.x,
-            y: tile.y
-        });
-    }
+    // for tile in image_tiles.iter() {
+    //     let pixels = &tile.pixels;
+    //     let result_color = get_dominant_color(pixels.to_string());
+    //     result.push(ColorCell{
+    //         color: result_color,
+    //         x: tile.x,
+    //         y: tile.y
+    //     });
+    // }
     JsValue::from_serde(&result).unwrap()
 }
 

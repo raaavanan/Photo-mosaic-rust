@@ -44,7 +44,7 @@ img.onload = () => {
     console.timeEnd("generating tiles");
 
     const palette = get_color_palette(dataUri);
-    const colors = mosaify(tiles);
+    const colors = mosaify([tiles[0]]);
     console.log('=======================colors============================');
     console.log(colors);
     console.log('=======================colors============================');

@@ -44,40 +44,32 @@
       border: 5px solid #999999;
       float:left;
       margin-left: 20px;
-      position: relative;
     }
     section canvas {
       max-width: 100%;
     }
-    section .color-pallete {
-      position: absolute;
-      top:0;
-      left:0;
+    aside .color-pallete {
       width: 100%;
       height: 100%;
       display: none;
-      justify-content: center;
+      justify-content: left;
       align-items: center;
     }
-    section .color-pallete .overlay {
+    aside .color-pallete .overlay {
       background: rgba(0,0,0,0.8);
       width:100%;
       height: 100%;
-      position: absolute;
-      top:0;
-      left:0;
       display: flex;
       z-index: 1;
     }
-    section .pallete {
-      position: absolute;
+    aside .pallete {
       z-index: 2;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
     }
-    section .pallete .dominant {
+    aside .pallete .dominant {
       width: 150px;
       height: 50px;
       background-color: #000000;
@@ -85,7 +77,7 @@
       color: #333;
       font-weight: bold;
     }
-    section .pallete .palette-colors {
+    aside .pallete .palette-colors {
       width: 120px;
       height: 40px;
       background-color: #000000;
@@ -105,11 +97,8 @@
       <label for="upload-image">Choose an Image</label>
       <input id="upload-image" type="file" name="image">
     </div>
-  </aside>
-  <section class="image-frame">
-    <canvas id="main-frame" width="350px" height="400px"></canvas>
     <article id="color-pallete" class="color-pallete">
-        <div class="overlay"></div>
+      <div class="overlay"></div>
       <div class="pallete">
         <button id="dominant-color" class="dominant"></button>
         <div class="full-pallete">
@@ -119,8 +108,11 @@
           <button class="palette-colors" id="color4"></button>
           <button class="palette-colors" id="color5"></button>
         </div>
-      </div>
-    </article>
+    </div>
+  </article>
+  </aside>
+  <section class="image-frame">
+    <canvas id="main-frame" width="350px" height="400px"></canvas>
   </section>
   <script src="./bootstrap.js"></script>
 </body>

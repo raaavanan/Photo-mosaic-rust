@@ -1,4 +1,4 @@
-import { image_data, mosaify } from 'photo-mosaic'
+import { get_color_palette, mosaify } from 'photo-mosaic'
 
 /** Initiating a canvas element at global scope */
 const canvas = document.getElementById('main-frame');
@@ -7,8 +7,8 @@ const ctx = canvas.getContext('2d');
 // image to recieve the image uploaded by user
 const img = new Image();
 const fileInput = document.getElementById("file-input");
-const TILE_WIDTH = 16;
-const TILE_HEIGHT = 16;
+const TILE_WIDTH = 60;
+const TILE_HEIGHT = 60;
 
 // listen to file upload
 fileInput.onchange = imageUpload;
@@ -35,34 +35,34 @@ function imageUpload() {
 img.onload = () => {
     canvas.width = img.width;
     canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img,0,0);
     let dataUri = canvas.toDataURL();
     dataUri = dataUri.replace('data:image/png;base64,', '');
 
+    console.time("generating tiles");
+    const tiles = generateTiles();
+    console.timeEnd("generating tiles");
 
-   // const tiles = generateTiles();
-
-    // const colors = tiles.map((tile, i) => {
-    //     console.log('=======================color============================');
-    //     console.log(tile.pixels);
-    //     console.log('=======================color============================');
-    //     setTimeout(() => {
-    //         const color = image_data(tile.pixels);
-    //         console.log('=======================color============================');
-    //         console.log(color, i);
-    //         console.log('=======================color============================');
-    //         return {color, x: tile.x, y: tile.y};
-    //     }, 300);
-        
-    // });
-
-    const colors = image_data(dataUri);
+   const palette = get_color_palette(dataUri);
+   showColorPalette(palette);
     
-    //const colors = mosaify(tiles);
-    console.log('=======================colors============================');
-    console.log(colors);
-    console.log('=======================colors============================');
-    showColorPalette(colors);
+    const colors = mosaify(tiles);
+    drawMosaic(colors);
+    
+    
+}
+
+function drawMosaic(colors) {
+    // ctx.clearRect(0, 0, canvas.width, canvas.height);
+    colors.forEach(data => {
+        const {color, x, y} = data
+        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+        ctx.beginPath();
+        //ctx.arc(x, y, TILE_WIDTH/2, 0, 2 * Math.PI);
+        //ctx.fill();
+        ctx.fillRect(x,y,TILE_WIDTH, TILE_HEIGHT);
+    })
+    
 }
 
 /**
@@ -84,15 +84,25 @@ const showColorPalette = (colors) => {
  * generate tiles of image data with x, y co-ordinates
  */
 function generateTiles() {
-    const rows = img.width / TILE_WIDTH;
-    const cols = img.height / TILE_HEIGHT;
+    const cols = img.width / TILE_WIDTH;
+    const rows = img.height / TILE_HEIGHT;
+    console.log("log: -------------------------------")
+    console.log("log: generateTiles -> cols", Math.floor(cols))
+    console.log("log: -------------------------------")
+    console.log("log: -------------------------------")
+    console.log("log: generateTiles -> rows", Math.floor(rows))
+    console.log("log: -------------------------------")
+    
     const imageTiles = [];
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    document.body.appendChild(canvas);
     for (let y = 0; y < rows; ++y) {
         for (let x = 0; x < cols; ++x) {
-            const canvas = document.createElement('canvas');
+            
             canvas.width = TILE_WIDTH;
             canvas.height = TILE_HEIGHT;
-            const context = canvas.getContext('2d');
+            
 
             context.drawImage(
                 img,
@@ -114,6 +124,7 @@ function generateTiles() {
                 "x": x * TILE_WIDTH,
                 "y": y * TILE_HEIGHT
             });
+            //context.clearRect(0, 0, TILE_WIDTH, TILE_HEIGHT);
         } //end of colums for loop
     } //end of row for loop
     return imageTiles;

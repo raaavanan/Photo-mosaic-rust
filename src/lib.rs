@@ -8,7 +8,7 @@ extern crate base64;
 use wasm_bindgen::prelude::*;
 
 use color_thief::{ColorFormat};
-use image::{load_from_memory_with_format};
+use image::{load_from_memory_with_format, DynamicImage};
 
 #[macro_use]
 extern crate serde_derive;
@@ -28,20 +28,34 @@ pub struct InputCell {
 }
 
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct ColorCell {
     pub color: Vec<u8>,
     pub x: i32,
     pub y: i32
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Palette {
     pub color1: Vec<u8>,
     pub color2: Vec<u8>,
     pub color3: Vec<u8>,
     pub color4: Vec<u8>,
     pub color5: Vec<u8>,
+}
+
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
+macro_rules! console_log {
+    // Note that this is using the `log` function imported above during
+    // `bare_bones`
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
 fn find_color(t: image::ColorType) -> ColorFormat {
@@ -52,14 +66,19 @@ fn find_color(t: image::ColorType) -> ColorFormat {
     }
 }
 
+fn load_image(image_string: String) -> DynamicImage {
+    // decode the base64 image
+    let decoded_img_bytes = base64::decode(&image_string).unwrap();
+    
+    load_from_memory_with_format(&decoded_img_bytes, image::ImageFormat::PNG).unwrap()
+}
+
 #[wasm_bindgen]
-pub fn image_data(image_tile: String) -> JsValue {
+pub fn get_color_palette(image_tile: String) -> JsValue {
     // utility to log errors in JS
     utils::set_panic_hook();
 
-    // decode the base64 image
-    let decoded_img_bytes = base64::decode(&image_tile).unwrap();
-    let img = load_from_memory_with_format(&decoded_img_bytes, image::ImageFormat::PNG).unwrap();
+    let img = load_image(String::from(image_tile));
     let color_type = find_color(img.color());
     let pixels = &img.raw_pixels();
     let colors = color_thief::get_palette(&pixels, color_type, 10, 10).unwrap();
@@ -75,6 +94,18 @@ pub fn image_data(image_tile: String) -> JsValue {
     JsValue::from_serde(&palette).unwrap()
 }
 
+fn get_dominant_color(image_tile: String) -> Vec<u8> {
+    let img = load_image(String::from(image_tile));
+    let color_type = find_color(img.color());
+    let pixels = &img.raw_pixels();
+    let colors = match color_thief::get_palette(&pixels, color_type, 10, 10) {
+        Ok(colors) => vec![colors[0].r, colors[0].g, colors[0].b],
+        Err(_e) => return vec![0, 0, 0]
+    };
+
+    return colors
+}
+
 #[wasm_bindgen]
 pub fn mosaify(tiles: &JsValue) -> JsValue {
     // utility to log errors in JS
@@ -84,17 +115,14 @@ pub fn mosaify(tiles: &JsValue) -> JsValue {
     let mut result: Vec<ColorCell> = Vec::new();
 
     for tile in image_tiles.iter() {
-        let pixels = &tile.pixels;
-        //let result_tile = image_data(pixels.to_string());
-        // result.push(ColorCell{
-        //     color: result_tile.color1,
-        //     x: tile.x,
-        //     y: tile.y
-        // });
+        let pixels = String::from(&tile.pixels);
+        let result_color = get_dominant_color(pixels);
+        result.push(ColorCell{
+            color: result_color,
+            x: tile.x,
+            y: tile.y
+        });
     }
-    
-
-
     JsValue::from_serde(&result).unwrap()
 }
 

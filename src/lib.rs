@@ -23,16 +23,16 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[derive(Serialize, Deserialize)]
 pub struct InputCell {
     pub pixels: String,
-    pub x: i128,
-    pub y: i128
+    pub x: i32,
+    pub y: i32
 }
 
 
 #[derive(Serialize, Deserialize)]
 pub struct ColorCell {
     pub color: Vec<u8>,
-    pub x: i128,
-    pub y: i128
+    pub x: i32,
+    pub y: i32
 }
 
 #[derive(Serialize, Deserialize)]
@@ -42,6 +42,20 @@ pub struct Palette {
     pub color3: Vec<u8>,
     pub color4: Vec<u8>,
     pub color5: Vec<u8>,
+}
+
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
+macro_rules! console_log {
+    // Note that this is using the `log` function imported above during
+    // `bare_bones`
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
 fn find_color(t: image::ColorType) -> ColorFormat {
@@ -84,9 +98,12 @@ fn get_dominant_color(image_tile: String) -> Vec<u8> {
     let img = load_image(String::from(image_tile));
     let color_type = find_color(img.color());
     let pixels = &img.raw_pixels();
-    let colors = color_thief::get_palette(&pixels, color_type, 10, 10).unwrap();
+    let colors = match color_thief::get_palette(&pixels, color_type, 10, 10) {
+        Ok(colors) => vec![colors[0].r, colors[0].g, colors[0].b],
+        Err(_e) => return vec![0, 0, 0]
+    };
 
-    vec![colors[0].r, colors[0].g, colors[0].b]
+    return colors
 }
 
 #[wasm_bindgen]
@@ -97,15 +114,15 @@ pub fn mosaify(tiles: &JsValue) -> JsValue {
     let image_tiles: Vec<InputCell> = tiles.into_serde().unwrap();
     let mut result: Vec<ColorCell> = Vec::new();
 
-    // for tile in image_tiles.iter() {
-    //     let pixels = &tile.pixels;
-    //     let result_color = get_dominant_color(pixels.to_string());
-    //     result.push(ColorCell{
-    //         color: result_color,
-    //         x: tile.x,
-    //         y: tile.y
-    //     });
-    // }
+    for tile in image_tiles.iter() {
+        let pixels = String::from(&tile.pixels);
+        let result_color = get_dominant_color(pixels);
+        result.push(ColorCell{
+            color: result_color,
+            x: tile.x,
+            y: tile.y
+        });
+    }
     JsValue::from_serde(&result).unwrap()
 }
 

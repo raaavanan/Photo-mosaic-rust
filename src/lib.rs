@@ -23,16 +23,16 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[derive(Serialize, Deserialize)]
 pub struct InputCell {
     pub pixels: String,
-    pub x: i32,
-    pub y: i32
+    pub x: u32,
+    pub y: u32
 }
 
 
 #[derive(Serialize, Deserialize)]
 pub struct ColorCell {
     pub color: Vec<u8>,
-    pub x: i32,
-    pub y: i32
+    pub x: u32,
+    pub y: u32
 }
 
 #[derive(Serialize, Deserialize)]
@@ -50,12 +50,6 @@ extern "C" {
     // `log(..)`
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
-}
-
-macro_rules! console_log {
-    // Note that this is using the `log` function imported above during
-    // `bare_bones`
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
 fn find_color(t: image::ColorType) -> ColorFormat {
@@ -123,6 +117,37 @@ pub fn mosaify(tiles: &JsValue) -> JsValue {
             y: tile.y
         });
     }
+    JsValue::from_serde(&result).unwrap()
+}
+
+#[wasm_bindgen]
+pub fn mosaify2(image_uri: String, img_width: u32, img_height: u32, tile_width: u32, tile_height: u32) -> JsValue {
+    // utility to log errors in JS
+    utils::set_panic_hook();
+
+    let mut img = load_image(String::from(image_uri));
+    let color_type = find_color(img.color());
+    let cols = img_width / tile_width;
+    let rows = img_height / tile_height;
+    let mut result: Vec<ColorCell> = Vec::new();
+
+    for y in 0..rows { 
+        for x in 0..cols {
+            let sub_img = &img.crop(x * tile_width, y * tile_height, tile_width, tile_height);
+            let pixels = &sub_img.raw_pixels();
+            let colors = match color_thief::get_palette(&pixels, color_type, 5, 5) {
+                Ok(colors) => vec![colors[0].r, colors[0].g, colors[0].b],
+                Err(_e) => vec![0, 0, 0]
+            };
+            result.push(ColorCell{
+                color: colors,
+                x: x * tile_width,
+                y: y * tile_height
+            });
+
+        };
+    };
+
     JsValue::from_serde(&result).unwrap()
 }
 

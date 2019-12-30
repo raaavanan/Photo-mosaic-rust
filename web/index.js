@@ -1,4 +1,4 @@
-import { get_color_palette, mosaify } from 'photo-mosaic'
+import { get_color_palette, mosaify2 } from 'photo-mosaic'
 
 /** Initiating a canvas element at global scope */
 const canvas = document.getElementById('main-frame');
@@ -25,6 +25,9 @@ function imageUpload() {
     reader.onload = function (evt) {
         if (evt.target.readyState == FileReader.DONE) {
             img.src = evt.target.result;
+            console.log("log: ---------------------------------------------------------")
+            console.log("log: reader.onload -> evt.target.result", evt.target.result)
+            console.log("log: ---------------------------------------------------------")
             document.body.appendChild(img);
             img.style.display = 'none';
         }
@@ -40,13 +43,13 @@ img.onload = () => {
     dataUri = dataUri.replace('data:image/png;base64,', '');
 
     console.time("generating tiles");
-    const tiles = generateTiles();
+    //const tiles = generateTiles();
     console.timeEnd("generating tiles");
 
    const palette = get_color_palette(dataUri);
    showColorPalette(palette);
     
-    const colors = mosaify(tiles);
+    const colors = mosaify2(dataUri, img.width, img.height, TILE_WIDTH, TILE_HEIGHT);
     drawMosaic(colors);
     
     
@@ -85,14 +88,7 @@ const showColorPalette = (colors) => {
  */
 function generateTiles() {
     const cols = img.width / TILE_WIDTH;
-    const rows = img.height / TILE_HEIGHT;
-    console.log("log: -------------------------------")
-    console.log("log: generateTiles -> cols", Math.floor(cols))
-    console.log("log: -------------------------------")
-    console.log("log: -------------------------------")
-    console.log("log: generateTiles -> rows", Math.floor(rows))
-    console.log("log: -------------------------------")
-    
+    const rows = img.height / TILE_HEIGHT; 
     const imageTiles = [];
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
